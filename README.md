@@ -1,40 +1,113 @@
-# Synthetic oil-and-gas Fabric RTI demo
+# Oil-and-gas operational intelligence with Fabric RTI and Fabric IQ
 
-P0/P1 implementation for workspace `21733624-95b6-4740-b892-d29ff7889aa4`,
-folder **Dev/Matthieu/OilandGas**. **P2 is excluded.** All sites, assets, telemetry
-and thresholds are synthetic; this is not a production control system.
+## Business and industrial context
 
-**Current state: verified analytical core, not an end-to-end-ready streaming demo.**
-Deployment observations below were recorded on October 21, 2026; they are not
-a live service-health check. The completed direct Eventhouse load is separate
-from the blocked Eventstream route.
-The direct-ingestion Eventstream destination is Warning; its publishing endpoint
-returns HTTP 401 from both local and Fabric-hosted Python. A verified-TLS AMQP
-SDK probe on port 5671 also returned 401 with an explicit IP access denial;
-the source's endpoint, entity path and policy name match the supplied connection.
-External Kafka is not configured. See [deployment status](docs/deployment-status.md)
-for deployed IDs, exact results and open acceptance gates.
+Oil-and-gas operations depend on equipment distributed across production sites,
+tank batteries and gas-lift systems. Compressors support gas-lift operations,
+while pressure and vibration measurements help teams understand how those
+assets behave over time. Operators and engineers need to move from individual
+telemetry tags to a clear operational picture: **what was measured, on which
+equipment, at which site, and how recently?**
 
-## What works
+Industrial telemetry often arrives from SCADA systems, historians or messaging
+platforms as timestamps, tag paths and values. A tag can encode a site, a
+compressor and even a specific component, but that context is not immediately
+usable as a business model. Repeated equipment names across sites, late or
+duplicate events, mixed engineering units and stale readings make simple
+time-series charts insufficient for answering operational questions reliably.
 
-- One shared deterministic generator, finite concurrent publishers and exact
-  147-row fixture; nine-field [wire contract](contracts/telemetry.schema.json).
-- Eventhouse raw landing, transactional parsing, actual receipt preservation,
-  quality flags, heuristic deduplication, 11 curated functions and one internal normalizer.
-- Native six-tile dashboard and six-tab queryset deployed.
-- Thirteen small reference Delta tables materialized and read back from OneLake:
-  six entity types, relationship inventory and six per-edge tables.
-- Legacy JSON ontology deployed with static bindings and direct Eventhouse
-  Measurement time-series binding. Native graph queries verify six entity counts,
-  24 edges, the complete component-pressure path and its compound-key telemetry join.
-- Published Data Agent with selected KQL, legacy ontology and ontology-backed
-  GraphModel sources. Historical count, current freshness, site inventory,
-  historical comparison and ambiguous-asset answers pass strict CSV checks.
-  Legacy ontology planning and GraphModel CSV scalar encoding still
-  prevent full context-answer acceptance; this is not represented as an AI pass.
-- Stopped Activator source/object scaffold, with no rule, action or recipient.
-- Physical Telemetry OneLake availability enabled; all 147 rows read back as
-  Delta version 1, independently of Spark.
+This repository provides a **synthetic compressor-monitoring demonstration**
+for exploring how Microsoft Fabric Real-Time Intelligence (RTI) and Fabric IQ
+can bring telemetry, asset context and conversational exploration together.
+It is intended for customer demonstrations, architecture discussions and
+hands-on learning, not production equipment monitoring or control.
+
+## What the demo is designed to show
+
+The business story connects three questions:
+
+1. **What is happening?** Use Fabric RTI to ingest and query telemetry, inspect
+   pressure history, compare compressors and distinguish fresh observations
+   from stale or missing data.
+2. **Where is it happening, and what does it belong to?** Explore the
+   ontology-based operational context central to the Fabric IQ story, linking
+   sites and equipment to their components and measurements.
+3. **How can people explore it?** Combine dashboards, curated queries and
+   Data Agent questions so users can navigate from a business question to
+   scoped assets and supporting observations.
+
+| Demonstration area | Fabric capabilities explored | Industrial value illustrated |
+|---|---|---|
+| Telemetry ingestion | Eventstream definitions and publisher, plus a separate direct Eventhouse ingestion option | Bring changing synthetic measurements into an analytical workflow |
+| Time-series analysis | Eventhouse, KQL normalization and curated functions | Explore pressure trends, compare assets, identify synthetic threshold exceedances and inspect data quality |
+| Operational visibility | Real-Time Dashboard and KQL Queryset | Present readings with their units, observation times and freshness |
+| Shared reference data | Lakehouse Delta tables and OneLake | Make asset and measurement context available alongside telemetry |
+| Business context / Fabric IQ | Ontology entities, relationships, measurement bindings and ontology-backed graph traversal | Navigate from a site to the specific equipment and tag behind a reading |
+| Conversational exploration | Fabric Data Agent with selected KQL and contextual sources | Ask operational questions grounded in scoped assets and query evidence |
+| Event-driven follow-up | Activator scaffold | Introduce the alerting design pattern without enabling notifications or equipment actions |
+
+These are demonstration surfaces, not a claim that every integration or
+conversational path is qualified end to end. Environment-specific prerequisites,
+validation evidence and limitations belong in the
+[deployment notes](docs/deployment-status.md) and
+[presenter runbook](docs/manual-fabric-steps.md).
+
+## The compressor-monitoring scenario
+
+The synthetic asset model contains two sites, two tank batteries, two gas-lift
+systems, four compressors, four components and twelve measurements. It connects:
+
+```text
+Site -> Battery -> System -> Compressor -> Component -> Measurement
+                                   \-----------------> Measurement
+```
+
+Discharge pressure is associated with a compressor's Throw 3 component;
+suction pressure and vibration are associated directly with the compressor.
+Measurements use the compound identity `Source + UnitNum + Name`, so a tag is
+not identified by an equipment number alone.
+
+The generator provides changing values and a normal/high/recovery scenario,
+as well as a deterministic corpus for exploring duplicates, late arrivals,
+invalid records and freshness. All sites, assets, values and thresholds are
+synthetic; no customer operational data is required.
+
+### Questions to explore
+
+- Which compressors and measurements belong to Site A?
+- What is the discharge-pressure history for a specific compressor component?
+- How do two compressors compare over the same observation window?
+- Which readings exceed the synthetic pressure threshold in that window?
+- Which measurements are fresh, stale or missing?
+- When someone asks about "Compressor 1," which site do they mean?
+
+The goal is to demonstrate value beyond storing time series: connect an
+observation to its industrial meaning, preserve the evidence behind an answer,
+and make the same operational model approachable through queries, visual
+exploration and natural language.
+
+## Suggested demonstration journey
+
+1. **Start with a telemetry tag.** Inspect the nine-field
+   [wire contract](contracts/telemetry-contract.md) and show why a timestamp
+   and value alone do not explain an asset's operational context.
+2. **Explore the time series.** Use the
+   [demo queries](kql/04-demo-queries.kql) and dashboard to examine history,
+   comparisons, freshness and quality without mixing units or treating
+   missing data as normal.
+3. **Add the asset context.** Follow the
+   [site-to-pressure graph query](ontology/site-a-pressure.gql) from a site
+   through its equipment to a measurement, then resolve its telemetry.
+4. **Ask a business question.** Use the Data Agent with the
+   [grounding rules](agent/instructions.md), requiring asset scope, units,
+   observation window and freshness in the answer.
+5. **Discuss responsible follow-up.** Explain how an Activator design could
+   route an observation for human review. The scaffold does not enable a rule,
+   recipient or action.
+
+This is decision support, not equipment diagnosis, a safety system, a
+maintenance recommendation engine or autonomous control. A synthetic threshold
+exceedance is an observation to investigate, not proof of an equipment fault.
 
 ## Local validation
 
@@ -68,7 +141,7 @@ deployment; do not redeploy existing items merely to run validation.
 ```powershell
 .\scripts\Test-Ontology.ps1
 .\scripts\Test-Demo.ps1
-# Original fixture-only database ONLY; not the current expanded deployment:
+# Original fixture-only database ONLY; never after additional ingestion:
 # .\scripts\Test-Demo.ps1 -Fixture
 # .\.venv\Scripts\python.exe .\scripts\verify_onelake_telemetry.py
 ```
@@ -82,14 +155,15 @@ local deployment state.
 
 ## Repository contents and scope
 
-- `simulator/`, `contracts/`, `data/` and `tests/`: shared generator, wire
+- [simulator/](simulator/), [contracts/](contracts/), [data/](data/) and
+  [tests/](tests/): shared generator, wire
   contract, synthetic registries and deterministic test corpus.
-- `kql/`, `fabric/`, `ontology/` and `agent/`: deployable definitions and queries.
-- `scripts/` and `docs/`: scoped deployment, validation and operating guidance.
-- [ontologyprompt.md](ontologyprompt.md) describes a proposed **new** compressor
-  monitoring ontology. It is a design prompt, not evidence that this separate
-  ontology has been implemented. The checked-in deployment scripts still target
-  the existing `OilGasOperationalOntology`.
+- [kql/](kql/), [fabric/](fabric/), [ontology/](ontology/) and [agent/](agent/):
+  deployable definitions and queries.
+- [scripts/](scripts/) and [docs/](docs/): scoped deployment, validation and
+  operating guidance.
+- [ontologyprompt.md](ontologyprompt.md): a separate ontology design proposal,
+  not the canonical deployment definition.
 
 Credentials, virtual environments, editor settings, Office lock files and
 `local-only/` runtime evidence are excluded from Git. The repository does
@@ -101,7 +175,7 @@ tokens or private keys.
 
 ### Direct Eventhouse ingestion
 
-For the requested direct route, use the shared generator without Eventstream:
+Use the shared generator without Eventstream for a bounded direct-ingestion demo:
 
 ```powershell
 # Append and verify one small batch.
@@ -119,11 +193,7 @@ mapping to append to `RawTelemetry`; its transactional update policy populates
 normal/high/recovery scenario across batches. Samples are released in scheduled
 micro-batches and verified by their returned extent IDs; API delays can increase
 observation age and reduce achieved throughput. It neither replays the fixture nor updates
-reference tables. A live 12-row test verified all raw rows and independently
-confirmed all 12 normalized rows, with 12 fresh measurements at query time.
-The requested three-hour run subsequently completed: **108,000 new raw rows,
-108,000 normalized rows, 108,000 distinct fingerprints and zero parse errors**.
-It ran from 09:02:42 to 12:02:42 UTC on October 21, 2026 and stopped automatically.
+reference tables.
 Progress is updated after each verified batch in the printed
 `local-only/direct-ingestion-evidence-<runId>.json` file. Multiple-batch runs
 include the final interval in their scheduled duration. An ingestion/receipt
@@ -146,8 +216,11 @@ relabeled as live. Threshold exceedance is not a diagnosis.
 ## Deployment and live operation
 
 See [manual Fabric steps](docs/manual-fabric-steps.md) before making changes.
-The scripts are deliberately restricted to this approved workspace/folder;
-they are not a general multi-tenant deployment framework.
+The scripts are deliberately restricted to workspace
+`21733624-95b6-4740-b892-d29ff7889aa4`, folder **Dev/Matthieu/OilandGas**;
+they are not a general multi-tenant deployment framework. The ontology
+deployment targets `OilGasOperationalOntology`. Review that target and export
+existing definitions before applying changes.
 
 ```powershell
 .\scripts\Deploy-Demo.ps1 -WhatIf
@@ -170,8 +243,8 @@ Do not run the Spark notebook and direct Delta materializer concurrently.
 Direct materialization refuses modified tables and verifies matching initial
 tables without overwriting. Deployment updates replace canonical item
 definitions: export portal edits first, especially a Kafka connector or agent
-configuration. The notebook is an optional alternative, not a required step;
-its attempted run failed, whereas direct materialization succeeded.
+configuration. The Spark reference-loader notebook is an optional alternative
+to direct Delta materialization, not a required step.
 Both deployment entry points preserve the recorded ingestion mode when it is
 omitted. Explicitly requesting a different mode changes the canonical topology.
 Agent redeployment replaces schema selections and reruns supported selection
@@ -185,13 +258,13 @@ validation:
 .\scripts\Test-Agent.ps1 -AcceptanceCase HighCount
 ```
 
-The current-time, graph-path and ambiguity evaluations are retained in local
-evidence. `rpcCallCompleted` is not semantic acceptance. Graph CSV containing
+Evaluate answer correctness, not just successful tool execution:
+`rpcCallCompleted` is not semantic acceptance. Graph CSV containing
 JSON-encoded strings such as a literal `"SITE-A"` is deliberately rejected,
 not silently trimmed into a passing identifier.
 
-After the owner resolves the network/service issue, the bounded custom-endpoint
-fallback can be exercised using:
+With an authorized, reachable Eventstream custom endpoint, exercise the bounded
+publisher using:
 
 ```powershell
 .\scripts\Invoke-Simulation.ps1 -Count 300 -Rate 10 -Scenario
@@ -218,8 +291,8 @@ configuration files or source control.
 
 ## Documentation
 
-- [Reviewed implementation plan](IMPLEMENTATION-PLAN.md)
-- [Deployment status and blockers](docs/deployment-status.md)
+- [Implementation plan](IMPLEMENTATION-PLAN.md)
+- [Environment-specific deployment evidence and limitations](docs/deployment-status.md)
 - [Fabric validation, recovery and presenter runbook](docs/manual-fabric-steps.md)
 - [Coexistence and governance](docs/coexistence.md)
 - [Bounded load qualification](docs/load-testing.md)
