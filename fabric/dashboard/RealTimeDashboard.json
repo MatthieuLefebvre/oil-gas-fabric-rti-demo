@@ -1,0 +1,188 @@
+{
+  "queries": [
+    {
+      "id": "a3ab9318-2274-4eb6-9694-000000000001",
+      "usedVariables": [],
+      "text": "LatestCompressorMeasurements() | project SiteId,AssetId,Metric,NumericValue,EngineeringUnit,EventTime,IsStale,Condition",
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "4148401e-451c-40d1-ab7f-e8804dd22dfa"
+      }
+    },
+    {
+      "id": "a3ab9318-2274-4eb6-9694-000000000002",
+      "usedVariables": [],
+      "text": "AbnormalCompressorReadings(ago(15m),now())",
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "4148401e-451c-40d1-ab7f-e8804dd22dfa"
+      }
+    },
+    {
+      "id": "a3ab9318-2274-4eb6-9694-000000000003",
+      "usedVariables": [],
+      "text": "IngestionHealth(ago(15m),now())",
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "4148401e-451c-40d1-ab7f-e8804dd22dfa"
+      }
+    },
+    {
+      "id": "a3ab9318-2274-4eb6-9694-000000000004",
+      "usedVariables": [],
+      "text": "SiteTelemetryInventory()",
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "4148401e-451c-40d1-ab7f-e8804dd22dfa"
+      }
+    },
+    {
+      "id": "a3ab9318-2274-4eb6-9694-000000000005",
+      "usedVariables": [],
+      "text": "DuplicateCandidates(ago(15m),now())",
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "4148401e-451c-40d1-ab7f-e8804dd22dfa"
+      }
+    },
+    {
+      "id": "a3ab9318-2274-4eb6-9694-000000000006",
+      "usedVariables": [],
+      "text": "ArrivalOrderDiagnostics(ago(15m),now())",
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "4148401e-451c-40d1-ab7f-e8804dd22dfa"
+      }
+    }
+  ],
+  "autoRefresh": {
+    "enabled": true
+  },
+  "title": "Synthetic Oil and Gas Operations",
+  "dataSources": [
+    {
+      "scopeId": "kusto-trident",
+      "database": "9c562b46-9eaa-48b0-a1e9-19ccae2c272d",
+      "workspace": "21733624-95b6-4740-b892-d29ff7889aa4",
+      "kind": "kusto-trident",
+      "name": "OilGasOperationsDB",
+      "id": "4148401e-451c-40d1-ab7f-e8804dd22dfa",
+      "clusterUri": "https://trd-cb0b5b0r49j6dzkm7d.z5.kusto.fabric.microsoft.com"
+    }
+  ],
+  "parameters": [],
+  "tiles": [
+    {
+      "pageId": "6b48a4d8-d464-44e4-bb89-a1920e2ce18e",
+      "layout": {
+        "y": 0.0,
+        "width": 12,
+        "height": 7,
+        "x": 0
+      },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "a3ab9318-2274-4eb6-9694-000000000001"
+      },
+      "id": "c50a8d18-6f34-4c89-8634-000000000001",
+      "visualType": "table",
+      "title": "Current compressor condition",
+      "visualOptions": {}
+    },
+    {
+      "pageId": "6b48a4d8-d464-44e4-bb89-a1920e2ce18e",
+      "layout": {
+        "y": 0.0,
+        "width": 12,
+        "height": 7,
+        "x": 12
+      },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "a3ab9318-2274-4eb6-9694-000000000002"
+      },
+      "id": "c50a8d18-6f34-4c89-8634-000000000002",
+      "visualType": "table",
+      "title": "Synthetic high readings",
+      "visualOptions": {}
+    },
+    {
+      "pageId": "6b48a4d8-d464-44e4-bb89-a1920e2ce18e",
+      "layout": {
+        "y": 7.0,
+        "width": 12,
+        "height": 7,
+        "x": 0
+      },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "a3ab9318-2274-4eb6-9694-000000000003"
+      },
+      "id": "c50a8d18-6f34-4c89-8634-000000000003",
+      "visualType": "table",
+      "title": "Platform ingestion health",
+      "visualOptions": {}
+    },
+    {
+      "pageId": "6b48a4d8-d464-44e4-bb89-a1920e2ce18e",
+      "layout": {
+        "y": 7.0,
+        "width": 12,
+        "height": 7,
+        "x": 12
+      },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "a3ab9318-2274-4eb6-9694-000000000004"
+      },
+      "id": "c50a8d18-6f34-4c89-8634-000000000004",
+      "visualType": "table",
+      "title": "Tag inventory and freshness",
+      "visualOptions": {}
+    },
+    {
+      "pageId": "6b48a4d8-d464-44e4-bb89-a1920e2ce18e",
+      "layout": {
+        "y": 14.0,
+        "width": 12,
+        "height": 7,
+        "x": 0
+      },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "a3ab9318-2274-4eb6-9694-000000000005"
+      },
+      "id": "c50a8d18-6f34-4c89-8634-000000000005",
+      "visualType": "table",
+      "title": "Duplicate candidates",
+      "visualOptions": {}
+    },
+    {
+      "pageId": "6b48a4d8-d464-44e4-bb89-a1920e2ce18e",
+      "layout": {
+        "y": 14.0,
+        "width": 12,
+        "height": 7,
+        "x": 12
+      },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "a3ab9318-2274-4eb6-9694-000000000006"
+      },
+      "id": "c50a8d18-6f34-4c89-8634-000000000006",
+      "visualType": "table",
+      "title": "Approximate arrival disorder",
+      "visualOptions": {}
+    }
+  ],
+  "id": "172ca905-ed6a-44d4-a127-832746158891",
+  "schema_version": "51",
+  "pages": [
+    {
+      "id": "6b48a4d8-d464-44e4-bb89-a1920e2ce18e",
+      "name": "Operations and platform health"
+    }
+  ],
+  "isDashboardEditor": "True",
+  "baseQueries": []
+}

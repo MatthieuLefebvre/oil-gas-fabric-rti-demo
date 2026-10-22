@@ -1,0 +1,9 @@
+.create-or-alter function with (folder='OilGas/Internal', docstring='Normalize raw strings without enrichment joins; retain invalid rows with explicit ParseError.') NormalizeTelemetry() {
+    RawTelemetry
+    | extend EventTime=todatetime(RecordDateTimeUTC), NumericValue=toreal(Value), EventhouseIngestedAt=ingestion_time()
+    | extend Fingerprint=hash_sha256(tostring(pack_array(Source,UnitNum,Name,
+        strcat(format_datetime(EventTime,'yyyy-MM-dd'),'T',format_datetime(EventTime,'HH:mm:ss.fffffff'),'Z'),
+        strcat(format_datetime(todatetime(RecordAdded),'yyyy-MM-dd'),'T',format_datetime(todatetime(RecordAdded),'HH:mm:ss.fffffff'),'Z'),Value))),
+        ParseError=case(isnull(EventTime), 'InvalidEventTime', isnull(NumericValue) or not(isfinite(NumericValue)), 'InvalidValue', isempty(Source) or isempty(UnitNum) or isempty(Name), 'MissingIdentity', '')
+}
+.alter table Telemetry policy update '[{"IsEnabled":true,"Source":"RawTelemetry","Query":"NormalizeTelemetry()","IsTransactional":true,"PropagateIngestionProperties":true}]'

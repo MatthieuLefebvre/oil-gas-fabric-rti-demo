@@ -1,0 +1,11 @@
+// Historical synthetic snapshot, NOT current live operations. Run blocks independently.
+LatestCompressorMeasurements(datetime(2026-10-20T12:00:00Z),15m)
+| project SiteId,AssetId,Metric,NumericValue,EngineeringUnit,EventTime,IsStale,Condition
+
+AbnormalCompressorReadings(datetime(2026-10-20T11:00:00Z),datetime(2026-10-20T12:00:00Z))
+
+CompressorHistory('CMP-A1',datetime(2026-10-20T11:00:00Z),datetime(2026-10-20T12:00:00Z))
+
+PressureTrend('CMP-A1',datetime(2026-10-20T11:00:00Z),datetime(2026-10-20T12:00:00Z),1m)
+
+CompareCompressors('CMP-A1','CMP-B1',datetime(2026-10-20T11:00:00Z),datetime(2026-10-20T12:00:00Z))

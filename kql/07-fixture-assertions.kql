@@ -1,0 +1,30 @@
+// Read-only fixed-corpus acceptance. Run before any additional ingestion.
+let AsOf=datetime(2026-10-20T12:00:00Z);
+let Start=datetime(2026-10-20T11:00:00Z);
+let End=datetime(2026-10-20T13:00:00Z);
+let Quality=TelemetryQuality(Start,End,AsOf);
+union
+    (RawTelemetry | summarize Actual=count() | extend Check='Raw',Expected=147),
+    (Telemetry | summarize Actual=countif(isempty(ParseError)) | extend Check='ParseValid',Expected=141),
+    (Telemetry | summarize Actual=countif(isnotempty(ParseError)) | extend Check='Invalid',Expected=6),
+    (Quality | summarize Actual=countif(Quality=='Valid') | extend Check='Eligible',Expected=132),
+    (Quality | summarize Actual=countif(Quality=='UnknownTag') | extend Check='Unknown',Expected=5),
+    (Quality | summarize Actual=countif(Quality=='FutureEvent') | extend Check='Future',Expected=4),
+    (OperationalMeasurements(Start,AsOf) | summarize Actual=count() | extend Check='Deduplicated',Expected=120),
+    (AbnormalCompressorReadings(Start,AsOf) | summarize Actual=count() | extend Check='SyntheticHigh',Expected=10),
+    (LatestCompressorMeasurements(AsOf,15m) | summarize Actual=count() | extend Check='LatestRegistryCoverage',Expected=12),
+    (LatestCompressorMeasurements(AsOf,15m) | summarize Actual=countif(not(IsStale)) | extend Check='FreshAtFixtureTime',Expected=12),
+    (LatestCompressorMeasurements(AsOf+2d) | summarize Actual=countif(IsStale and isnull(EventTime)) | extend Check='MissingNotNormal',Expected=12),
+    (OperationalMeasurements(Start,AsOf,'SITE-A') | summarize Actual=count_distinct(MeasurementId) | extend Check='SiteAScope',Expected=6),
+    (MeasurementRegistry | summarize by Metric,EngineeringUnit | summarize Actual=count() | extend Check='SeparateMetricUnits',Expected=3),
+    (Telemetry | summarize Actual=countif(isnotnull(EventhouseIngestedAt)) | extend Check='ActualReceiptPreserved',Expected=147),
+    (Telemetry
+        | where RecordDateTimeUTC=='2026-10-20T11:50:32.000000Z'
+            and RecordAdded=='2026-10-20T11:50:34.000000Z' and Value=='149.219'
+        | summarize Actual=count_distinct(Fingerprint)
+            , Matches=countif(Fingerprint=='ba89872959d5340996a23e63c616b571baf345ba162f760548a52cd591927ba5')
+        | extend Actual=iff(Actual==1 and Matches>0,long(1),long(0)),Check='PythonKqlFingerprintParity',Expected=1
+        | project-away Matches)
+| extend Passed=Actual==Expected
+| project Check,Expected,Actual,Passed
+| order by Check asc

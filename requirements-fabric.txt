@@ -1,0 +1,5 @@
+azure-identity>=1.19,<2
+azure-storage-file-datalake>=12.18,<13
+deltalake>=1.0,<2
+pyarrow>=18,<24
+tzdata>=2024.1; sys_platform == "win32"

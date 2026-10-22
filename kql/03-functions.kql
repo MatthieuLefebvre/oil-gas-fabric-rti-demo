@@ -1,0 +1,75 @@
+.create-or-alter function with (folder='OilGas', docstring='Bounded typed telemetry with explicit parse/unmapped/future/skew flags. Do not mix units. AsOf is the observation boundary.') TelemetryQuality(StartUtc:datetime, EndUtc:datetime, AsOfUtc:datetime) {
+    Telemetry
+    | where (EventTime between (StartUtc .. EndUtc)) or isnull(EventTime)
+    | lookup kind=leftouter MeasurementRegistry on Source,UnitNum,Name
+    | extend IsUnknown=isempty(MeasurementId), IsFuture=EventTime > AsOfUtc + 30s,
+        LatencySeconds=(EventhouseIngestedAt-EventTime)/1s
+    | extend Quality=case(isnotempty(ParseError),ParseError,IsUnknown,'UnknownTag',IsFuture,'FutureEvent','Valid'),
+        ClockSkew=LatencySeconds < 0
+}
+.create-or-alter function with (folder='OilGas', docstring='Bounded valid mapped measurements; heuristic duplicate collapse. Source corrections require an authoritative event ID. Site is an ID, empty means all synthetic sites.') OperationalMeasurements(StartUtc:datetime, EndUtc:datetime, Site:string='') {
+    TelemetryQuality(StartUtc, EndUtc, EndUtc)
+    | where Quality == 'Valid' and (isempty(Site) or SiteId == Site)
+    | summarize arg_min(EventhouseIngestedAt, *) by Fingerprint
+}
+.create-or-alter function with (folder='OilGas', docstring='Latest observation per registered measurement over a bounded one-day horizon. Registry rows remain visible when stale or missing. Equal-time conflicting values are flagged, not interpreted as corrections.') LatestCompressorMeasurements(AsOfUtc:datetime=datetime(null), Freshness:timespan=60s) {
+    let AsOf=coalesce(AsOfUtc,now());
+    let readings=OperationalMeasurements(AsOf-1d,AsOf);
+    let latestTimes=readings | summarize LatestTime=max(EventTime) by MeasurementId;
+    let chosen=readings | join kind=inner latestTimes on MeasurementId | where EventTime == LatestTime
+        | summarize ConflictCount=dcount(Value), arg_max(Fingerprint,*) by MeasurementId
+        | project MeasurementId,EventTime,NumericValue,EventhouseIngestedAt,ConflictCount;
+    MeasurementRegistry
+    | lookup kind=leftouter chosen on MeasurementId
+    | extend ObservationAge=AsOf-EventTime, IsStale=isnull(EventTime) or AsOf-EventTime > Freshness,
+        ObservedAtUtc=AsOf, AsOfUtc=AsOf
+    | extend Condition=case(isnull(EventTime),'No observation in 1d horizon',IsStale,'Stale',ConflictCount>1,'Conflicting readings',
+        isnotnull(HighThreshold) and NumericValue>HighThreshold,'Synthetic high','Synthetic normal')
+}
+.create-or-alter function with (folder='OilGas', docstring='Bounded event-time history for one globally scoped compressor AssetId, with engineering units.') CompressorHistory(Asset:string,StartUtc:datetime,EndUtc:datetime) {
+    OperationalMeasurements(StartUtc,EndUtc) | where AssetId == Asset | order by EventTime asc
+}
+.create-or-alter function with (folder='OilGas', docstring='Discharge pressure trend only. Mean, min, max and counts by event-time bin, compressor and unit. No interpolation of absent samples.') PressureTrend(Asset:string,StartUtc:datetime,EndUtc:datetime,Grain:timespan=1m) {
+    CompressorHistory(Asset,StartUtc,EndUtc)
+    | where Metric == 'DischargePressure'
+    | summarize Average=avg(NumericValue),Minimum=min(NumericValue),Maximum=max(NumericValue),Samples=count()
+        by AssetId,EngineeringUnit,TimeBin=bin(EventTime,Grain)
+    | order by TimeBin asc
+}
+.create-or-alter function with (folder='OilGas', docstring='Configured synthetic threshold exceedances, not statistical anomalies, diagnoses or engineering operating limits.') AbnormalCompressorReadings(StartUtc:datetime,EndUtc:datetime) {
+    OperationalMeasurements(StartUtc,EndUtc)
+    | where isnotnull(HighThreshold) and NumericValue > HighThreshold
+    | project SiteId,AssetId,MeasurementId,Metric,NumericValue,EngineeringUnit,HighThreshold,EventTime,EventhouseIngestedAt
+    | order by EventTime desc
+}
+.create-or-alter function with (folder='OilGas', docstring='Compare only matching metrics and units across two scoped compressor IDs within one event-time window.') CompareCompressors(AssetA:string,AssetB:string,StartUtc:datetime,EndUtc:datetime) {
+    OperationalMeasurements(StartUtc,EndUtc) | where AssetId in (AssetA,AssetB)
+    | summarize Average=avg(NumericValue),Minimum=min(NumericValue),Maximum=max(NumericValue),Samples=count(),LatestTime=max(EventTime)
+        by AssetId,Metric,EngineeringUnit
+}
+.create-or-alter function with (folder='OilGas', docstring='Platform-facing receipt freshness and latency/skew/quality diagnostics, bounded by actual raw receipt time. Negative apparent latency is reported separately.') IngestionHealth(StartUtc:datetime,EndUtc:datetime) {
+    Telemetry | where EventhouseIngestedAt between (StartUtc .. EndUtc)
+    | lookup kind=leftouter MeasurementRegistry on Source,UnitNum,Name
+    | extend LatencySeconds=(EventhouseIngestedAt-EventTime)/1s
+    | summarize RawRows=count(),Invalid=countif(isnotempty(ParseError)),Unknown=countif(isempty(MeasurementId)),
+        NegativeLatency=countif(LatencySeconds<0), P95LatencySeconds=percentile(iff(LatencySeconds>=0,LatencySeconds,real(null)),95),
+        LatestReceipt=max(EventhouseIngestedAt)
+    | extend ObservedAtUtc=now(),ReceiptAge=now()-LatestReceipt
+}
+.create-or-alter function with (folder='OilGas', docstring='Duplicate candidates in a bounded receipt-time interval. Fingerprints are a source-field heuristic, not exactly-once proof.') DuplicateCandidates(StartUtc:datetime,EndUtc:datetime) {
+    Telemetry | where EventhouseIngestedAt between (StartUtc .. EndUtc)
+    | summarize Copies=count(),FirstReceipt=min(EventhouseIngestedAt),LastReceipt=max(EventhouseIngestedAt) by Fingerprint,Source,UnitNum,Name,EventTime
+    | where Copies>1
+}
+.create-or-alter function with (folder='OilGas', docstring='Approximate arrival disorder by measurement. ingestion_time is not a strict arrival sequence; ties are inconclusive.') ArrivalOrderDiagnostics(StartUtc:datetime,EndUtc:datetime) {
+    Telemetry | where EventhouseIngestedAt between (StartUtc .. EndUtc) and isempty(ParseError)
+    | extend MeasurementKey=strcat(Source,'|',UnitNum,'|',Name)
+    | sort by MeasurementKey asc,EventhouseIngestedAt asc,EventTime asc
+    | serialize PreviousKey=prev(MeasurementKey),PreviousEvent=prev(EventTime),PreviousReceipt=prev(EventhouseIngestedAt)
+    | where MeasurementKey == PreviousKey and EventTime < PreviousEvent and EventhouseIngestedAt > PreviousReceipt
+}
+.create-or-alter function with (folder='OilGas', docstring='Registered telemetry inventory at a synthetic SiteId, with observed/stale coverage. Empty site means all sites.') SiteTelemetryInventory(Site:string='') {
+    LatestCompressorMeasurements()
+    | where isempty(Site) or SiteId == Site
+    | project SiteId,AssetId,MeasurementId,DisplayName,Metric,EngineeringUnit,AsOfUtc,EventTime,IsStale,Condition
+}

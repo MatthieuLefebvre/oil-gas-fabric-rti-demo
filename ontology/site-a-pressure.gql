@@ -1,0 +1,7 @@
+MATCH (s:Site)-[:Site_contains_Battery]->(b:Battery)
+  -[:Battery_contains_System]->(y:System)-[:System_contains_Compressor]->(c:Compressor)
+  -[:Compressor_contains_Component]->(t:Component)-[:Component_contains_Measurement]->(m:Measurement)
+WHERE s.EntityId='SITE-A' AND c.EntityId='CMP-A1' AND t.EntityId='THR-A1'
+RETURN s.EntityId AS SiteId,b.EntityId AS BatteryId,y.EntityId AS SystemId,
+  c.EntityId AS AssetId,t.EntityId AS ComponentId,m.MeasurementId AS MeasurementId,
+  m.Source AS Source,m.UnitNum AS UnitNum,m.Name AS Name,m.EngineeringUnit AS EngineeringUnit

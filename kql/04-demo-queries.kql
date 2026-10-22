@@ -1,0 +1,13 @@
+// Run blocks independently. All thresholds and sites are synthetic.
+LatestCompressorMeasurements()
+| project SiteId,AssetId,Metric,NumericValue,EngineeringUnit,EventTime,IsStale,Condition
+
+AbnormalCompressorReadings(ago(15m),now())
+
+IngestionHealth(ago(15m),now())
+
+DuplicateCandidates(ago(15m),now())
+
+ArrivalOrderDiagnostics(ago(15m),now())
+
+SiteTelemetryInventory()

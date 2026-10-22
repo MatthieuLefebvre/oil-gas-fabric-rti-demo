@@ -1,0 +1,52 @@
+{
+  "ContractVersion": 1,
+  "Profile": "Fixture",
+  "RunId": "6be13881-2d7c-5d4a-8f75-a93be8a6dda5",
+  "Seed": 42,
+  "AsOf": "2026-10-20T12:00:00.000000Z",
+  "File": "telemetry.ndjson",
+  "Count": 147,
+  "EventsPerSecond": 10,
+  "CorpusBytes": 55575,
+  "CorpusSha256": "4123ef1f5e24226a617faca6828d091d8b6b456069094e8f7da848443877a3a9",
+  "FingerprintVersion": 1,
+  "FutureToleranceSeconds": 30,
+  "ValueWireType": "String",
+  "SyntheticOnly": true,
+  "Expected": {
+    "Raw": 147,
+    "ParseValid": 141,
+    "ParseInvalid": 6,
+    "Unknown": 5,
+    "Future": 4,
+    "Eligible": 132,
+    "Deduplicated": 120,
+    "High": 10,
+    "Late": 8,
+    "Replay": 12
+  },
+  "LateArrivalSequences": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119
+  ],
+  "ReplaySequences": [
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131
+  ]
+}

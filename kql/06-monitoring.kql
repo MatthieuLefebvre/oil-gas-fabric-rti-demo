@@ -1,0 +1,13 @@
+// Business monitoring: stale assets and synthetic operational conditions.
+LatestCompressorMeasurements() | summarize Measurements=count(),Stale=countif(IsStale) by SiteId,AssetId
+
+// Platform flow: receipt, parse failures, unknown tags and apparent latency.
+IngestionHealth(ago(15m),now())
+
+// Management commands run separately. Workspace monitoring must be enabled
+// by its owner; no workspace-wide monitoring settings are changed by deployment.
+.show ingestion failures
+
+.show queries
+
+.show table Telemetry mirroring operations

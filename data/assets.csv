@@ -1,0 +1,15 @@
+AssetId,AssetType,DisplayName,ParentAssetId,SiteId
+SITE-A,Site,Fictional Aspen,,SITE-A
+SITE-B,Site,Fictional Birch,,SITE-B
+BAT-A,Battery,Battery 1,SITE-A,SITE-A
+BAT-B,Battery,Battery 1,SITE-B,SITE-B
+SYS-A,System,Gas Lift System,BAT-A,SITE-A
+SYS-B,System,Gas Lift System,BAT-B,SITE-B
+CMP-A1,Compressor,Compressor 1,SYS-A,SITE-A
+CMP-A2,Compressor,Compressor 2,SYS-A,SITE-A
+CMP-B1,Compressor,Compressor 1,SYS-B,SITE-B
+CMP-B2,Compressor,Compressor 2,SYS-B,SITE-B
+THR-A1,Component,Throw 3,CMP-A1,SITE-A
+THR-A2,Component,Throw 3,CMP-A2,SITE-A
+THR-B1,Component,Throw 3,CMP-B1,SITE-B
+THR-B2,Component,Throw 3,CMP-B2,SITE-B

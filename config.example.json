@@ -1,0 +1,9 @@
+{
+  "workspaceId": "21733624-95b6-4740-b892-d29ff7889aa4",
+  "folderId": "975ffc5a-edee-4558-a62d-3a2bfe72110c",
+  "folderPath": "Dev/Matthieu/OilandGas",
+  "databaseName": "OilGasOperationsDB",
+  "kafkaConnectionId": null,
+  "kafkaTopic": null,
+  "notificationRecipient": null
+}

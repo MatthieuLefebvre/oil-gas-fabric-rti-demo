@@ -1,0 +1,16 @@
+.create-merge table RawTelemetry (RecordDateTime:string, RecordDateTimeUTC:string, UnitNum:string, Source:string, Name:string, Value:string, RecordAdded:string, ProcessedDate:string, IngestionTime:string)
+.alter table RawTelemetry policy ingestiontime true
+.alter-merge table RawTelemetry policy retention softdelete = 30d
+.alter table RawTelemetry policy caching hot = 1d
+.alter table RawTelemetry policy streamingingestion disable
+.alter table RawTelemetry policy ingestionbatching '{"MaximumBatchingTimeSpan":"00:00:10","MaximumNumberOfItems":500,"MaximumRawDataSizeMB":1024}'
+.create-or-alter table RawTelemetry ingestion json mapping 'TelemetryJson' '[{"column":"RecordDateTime","path":"$.RecordDateTime"},{"column":"RecordDateTimeUTC","path":"$.RecordDateTimeUTC"},{"column":"UnitNum","path":"$.UnitNum"},{"column":"Source","path":"$.Source"},{"column":"Name","path":"$.Name"},{"column":"Value","path":"$.Value"},{"column":"RecordAdded","path":"$.RecordAdded"},{"column":"ProcessedDate","path":"$.ProcessedDate"},{"column":"IngestionTime","path":"$.IngestionTime"}]'
+.create-merge table Telemetry (RecordDateTime:string, RecordDateTimeUTC:string, UnitNum:string, Source:string, Name:string, Value:string, RecordAdded:string, ProcessedDate:string, IngestionTime:string, EventTime:datetime, NumericValue:real, EventhouseIngestedAt:datetime, Fingerprint:string, ParseError:string)
+.alter-merge table Telemetry policy retention softdelete = 30d
+.alter table Telemetry policy caching hot = 1d
+.create-merge table AssetRegistry (EntityId:string, EntityType:string, DisplayName:string, ParentId:string, SiteId:string, AssetId:string)
+.create-merge table MeasurementRegistry (MeasurementId:string, AssetId:string, ComponentId:string, SiteId:string, Source:string, UnitNum:string, Name:string, DisplayName:string, EngineeringUnit:string, Metric:string, HighThreshold:real, RecoveryThreshold:real)
+.create-merge table AssetRelationships (Relationship:string, SourceId:string, TargetId:string)
+.alter table RawTelemetry docstring 'Synthetic nine-field oil and gas source records. IngestionTime is source-provided; ingestion_time() is approximate Fabric receipt. All rows, including invalid and replayed rows, are retained.'
+.alter table Telemetry docstring 'Typed synthetic telemetry. ParseError is explicit. Preserve original strings. EventTime is source UTC, EventhouseIngestedAt is raw-table receipt, Fingerprint is only a duplicate heuristic. Use curated functions for operational answers.'
+.alter table MeasurementRegistry docstring 'Synthetic tag to scoped compressor and component identity. Engineering units and demo-only thresholds are metadata, not approved industrial operating limits.'

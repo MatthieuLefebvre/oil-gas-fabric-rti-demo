@@ -1,0 +1,2 @@
+# Generation, fixture validation, stdout and Event Hubs REST use only Python 3.10+ stdlib.
+# Optional Kafka transport only: pip install "kafka-python>=2.2.15,<3"

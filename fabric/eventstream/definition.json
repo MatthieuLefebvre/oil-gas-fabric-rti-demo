@@ -1,0 +1,45 @@
+{
+  "sources": [
+    {
+      "id": "964f865d-69ac-4c16-99bd-d928c9d2b611",
+      "properties": {},
+      "name": "SyntheticTelemetryEndpoint",
+      "type": "CustomEndpoint"
+    }
+  ],
+  "destinations": [
+    {
+      "type": "Eventhouse",
+      "name": "OilGasRawDirectLanding",
+      "id": "15a21214-1f2c-4f19-a1a5-836297109c40",
+      "properties": {
+        "workspaceId": "21733624-95b6-4740-b892-d29ff7889aa4",
+        "dataIngestionMode": "DirectIngestion",
+        "connectionName": "OilGasDirectConnection",
+        "tableName": "RawTelemetry",
+        "mappingRuleName": "TelemetryJson",
+        "itemId": "9c562b46-9eaa-48b0-a1e9-19ccae2c272d"
+      },
+      "inputNodes": [
+        {
+          "name": "OilGasTelemetryStream"
+        }
+      ]
+    }
+  ],
+  "streams": [
+    {
+      "id": "3d26d6c2-d80d-4c9f-aa49-0c09d5905df1",
+      "properties": {},
+      "name": "OilGasTelemetryStream",
+      "inputNodes": [
+        {
+          "name": "SyntheticTelemetryEndpoint"
+        }
+      ],
+      "type": "DefaultStream"
+    }
+  ],
+  "compatibilityLevel": "1.1",
+  "operators": []
+}

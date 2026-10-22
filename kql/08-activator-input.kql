@@ -1,0 +1,9 @@
+// Prospective Activator feed; no rule/notification is activated by this query.
+// Include recovery samples, not only high samples. Historical fixture data stays stale.
+LatestCompressorMeasurements()
+| where MeasurementId == 'MSR-A1-DP' and SiteId == 'SITE-A' and AssetId == 'CMP-A1'
+| where Metric == 'DischargePressure' and EngineeringUnit == 'psi'
+    and not(IsStale) and ConflictCount <= 1 and isnotnull(NumericValue)
+| project MeasurementId,SiteId,AssetId,Metric,NumericValue,EngineeringUnit,
+    HighThreshold,RecoveryThreshold,EventTime,EventhouseIngestedAt,
+    IsHigh=NumericValue>HighThreshold,IsRecovered=NumericValue<=RecoveryThreshold

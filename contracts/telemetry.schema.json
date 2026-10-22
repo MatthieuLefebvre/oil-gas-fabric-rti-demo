@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Synthetic oil-and-gas nine-field telemetry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["RecordDateTime", "RecordDateTimeUTC", "UnitNum", "Source", "Name", "Value", "RecordAdded", "ProcessedDate", "IngestionTime"],
+  "properties": {
+    "RecordDateTime": {"type": "string", "format": "date-time"},
+    "RecordDateTimeUTC": {"type": "string", "format": "date-time"},
+    "UnitNum": {"type": "string", "minLength": 1},
+    "Source": {"type": "string", "minLength": 1},
+    "Name": {"type": "string", "minLength": 1},
+    "Value": {"type": "string", "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"},
+    "RecordAdded": {"type": "string", "format": "date-time"},
+    "ProcessedDate": {"type": ["string", "null"], "format": "date-time"},
+    "IngestionTime": {"type": ["string", "null"], "format": "date-time"}
+  },
+  "$comment": "Approved wire deviation from plan 4.2: Value is a numeric STRING, not JSON number, to retain stable Eventstream wire types including malformed nonnumeric-string negative tests. Invalid fixture rows intentionally fail this contract. Synthetic IngestionTime is null, never Fabric receipt."
+}

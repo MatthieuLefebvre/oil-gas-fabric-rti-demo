@@ -1,0 +1,13 @@
+MeasurementId,AssetId,Source,UnitNum,Name,MeasurementType,Unit,HighThreshold,RecoveryThreshold,NominalMin,NominalMax
+MSR-A1-DP,THR-A1,SyntheticSCADA,1,Fictional_Aspen/Tank_Battery/Gas_Lift/Compressors/Compressor_1/Performance/Throw_3/DisplayedDiscPress,DischargePressure,psi,140,135,110,120
+MSR-A1-SP,CMP-A1,SyntheticSCADA,1,Fictional_Aspen/Tank_Battery/Gas_Lift/Compressors/Compressor_1/Performance/DisplayedSuctionPress,SuctionPressure,psi,,,32,38
+MSR-A1-VB,CMP-A1,SyntheticSCADA,1,Fictional_Aspen/Tank_Battery/Gas_Lift/Compressors/Compressor_1/Performance/Vibration,Vibration,mm/s,,,1.2,2.2
+MSR-A2-DP,THR-A2,SyntheticSCADA,2,Fictional_Aspen/Tank_Battery/Gas_Lift/Compressors/Compressor_2/Performance/Throw_3/DisplayedDiscPress,DischargePressure,psi,140,135,110,120
+MSR-A2-SP,CMP-A2,SyntheticSCADA,2,Fictional_Aspen/Tank_Battery/Gas_Lift/Compressors/Compressor_2/Performance/DisplayedSuctionPress,SuctionPressure,psi,,,32,38
+MSR-A2-VB,CMP-A2,SyntheticSCADA,2,Fictional_Aspen/Tank_Battery/Gas_Lift/Compressors/Compressor_2/Performance/Vibration,Vibration,mm/s,,,1.2,2.2
+MSR-B1-DP,THR-B1,SyntheticSCADA,1,Fictional_Birch/Tank_Battery/Gas_Lift/Compressors/Compressor_1/Performance/Throw_3/DisplayedDiscPress,DischargePressure,psi,140,135,110,120
+MSR-B1-SP,CMP-B1,SyntheticSCADA,1,Fictional_Birch/Tank_Battery/Gas_Lift/Compressors/Compressor_1/Performance/DisplayedSuctionPress,SuctionPressure,psi,,,32,38
+MSR-B1-VB,CMP-B1,SyntheticSCADA,1,Fictional_Birch/Tank_Battery/Gas_Lift/Compressors/Compressor_1/Performance/Vibration,Vibration,mm/s,,,1.2,2.2
+MSR-B2-DP,THR-B2,SyntheticSCADA,2,Fictional_Birch/Tank_Battery/Gas_Lift/Compressors/Compressor_2/Performance/Throw_3/DisplayedDiscPress,DischargePressure,psi,140,135,110,120
+MSR-B2-SP,CMP-B2,SyntheticSCADA,2,Fictional_Birch/Tank_Battery/Gas_Lift/Compressors/Compressor_2/Performance/DisplayedSuctionPress,SuctionPressure,psi,,,32,38
+MSR-B2-VB,CMP-B2,SyntheticSCADA,2,Fictional_Birch/Tank_Battery/Gas_Lift/Compressors/Compressor_2/Performance/Vibration,Vibration,mm/s,,,1.2,2.2

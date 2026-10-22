@@ -1,0 +1,6 @@
+CompareCompressors('CMP-A1','CMP-B1',datetime(2026-10-20T11:00:00Z),datetime(2026-10-20T12:00:00Z))
+| project AssetId,Metric,EngineeringUnit,
+    Average=round(Average,3),Minimum=round(Minimum,3),Maximum=round(Maximum,3),
+    Samples,LatestTime,
+    ObservationWindowStart='2026-10-20T11:00:00Z',ObservationWindowEnd='2026-10-20T12:00:00Z'
+| order by AssetId asc,Metric asc

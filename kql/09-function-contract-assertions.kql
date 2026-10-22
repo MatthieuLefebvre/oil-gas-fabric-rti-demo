@@ -1,0 +1,18 @@
+let anchor=toscalar(
+    LatestCompressorMeasurements(datetime(2026-10-20T12:00:00Z),15m)
+    | where MeasurementId == 'MSR-A1-DP' | project EventTime);
+union
+    (LatestCompressorMeasurements(anchor+60s,60s)
+    | where MeasurementId == 'MSR-A1-DP'
+    | project Check='FreshAtExact60Seconds',
+        Passed=not(IsStale) and ObservationAge == 60s
+            and AsOfUtc == anchor+60s and AsOfUtc == ObservedAtUtc),
+    (LatestCompressorMeasurements(anchor+61s,60s)
+    | where MeasurementId == 'MSR-A1-DP'
+    | project Check='StaleAfter60Seconds',
+        Passed=IsStale and ObservationAge == 61s
+            and AsOfUtc == anchor+61s and AsOfUtc == ObservedAtUtc),
+    (SiteTelemetryInventory('SITE-A')
+    | summarize MeasurementCount=count(),CorrectAsOf=countif(AsOfUtc == now())
+    | project Check='InventoryPreservesActualAsOf',
+        Passed=MeasurementCount == 6 and CorrectAsOf == 6)
